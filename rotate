@@ -13,8 +13,33 @@ notify2.init("rotate")
 import cv2
 import numpy
 
+exe = sys.argv[0]
+fullpath = os.path.realpath(exe)
+exefile = os.path.basename(exe)
+
+direction=0
+
+if exefile == 'rotate.counterclockwise':
+    direction=cv2.ROTATE_90_COUNTERCLOCKWISE
+elif exefile == 'rotate.clockwise':
+    direction=cv2.ROTATE_90_CLOCKWISE
+else:
+    if exefile == 'rotate':
+        try:
+            os.symlink(fullpath, "rotate.clockwise")
+        except FileExistsError as e:
+            print(e)
+        try:
+            os.symlink(fullpath, "rotate.counterclockwise")
+        except FileExistsError as e:
+            print(e)
+        sys.exit()
+    else:
+        raise NotImplementedError
+
 filepaths = os.environ['NAUTILUS_SCRIPT_SELECTED_FILE_PATHS'].splitlines()
 notif = None
+
 try:
     for filepath in filepaths:
         s = os.stat(filepath)
@@ -32,7 +57,7 @@ try:
         #center = tuple(size / 2)
         #M = cv2.getRotationMatrix2D(center, 90, 1)
         #img = cv2.warpAffine(img, M, tuple(size))
-        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+        img = cv2.rotate(img, direction)
 
         cv2.imwrite(filepath, img)
 
