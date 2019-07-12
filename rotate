@@ -33,6 +33,7 @@ else:
             os.symlink(fullpath, fullpath+".counterclockwise")
         except FileExistsError as e:
             print(e)
+        notify2.Notification("please use soft link to rotate").show()
         sys.exit()
     else:
         raise NotImplementedError
