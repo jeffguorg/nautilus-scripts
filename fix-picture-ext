@@ -1,0 +1,48 @@
+#!/home/guochao/.conda/envs/tika/bin/python
+
+
+import os
+import stat
+
+import sys
+import json
+
+import notify2
+notify2.init("tika")
+
+from tika import parser
+
+extmap = {
+    "image/jpeg": "jpg",
+    "image/png": "png"
+}
+
+filepaths = os.environ['NAUTILUS_SCRIPT_SELECTED_FILE_PATHS'].splitlines()
+notif = None
+try:
+    for filepath in filepaths:
+        s = os.stat(filepath)
+        if stat.S_ISDIR(s.st_mode):
+            continue
+        result = parser.from_file(filepath)
+        if notif is None:
+            notif = notify2.Notification(filepath)
+        else:
+            notif.summary = filepath
+
+        filename = os.path.basename(filepath)
+        dirname  = os.path.dirname(filepath)
+        filename, fileext = os.path.splitext(filename)
+        content_type = result['metadata']['Content-Type']
+        if content_type in extmap:
+            realext = extmap[content_type]
+        else:
+            realext = content_type.split("/")[-1] if '/' in content_type else content_type
+        notif.message = resultpath = os.path.join(dirname, filename + "." + realext)
+        if resultpath != filepath:
+            os.rename(filepath, resultpath)
+
+        notif.show()
+except Exception as e:
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    notify2.Notification("{}: {}: {}".format(exc_tb.tb_lineno, str(e), str(result))).show()

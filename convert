@@ -1,0 +1,54 @@
+#!/usr/bin/python3
+
+
+import os
+import stat
+
+import sys
+import json
+
+import notify2
+notify2.init("tika")
+
+import cv2
+
+exe = sys.argv[0]
+fullpath = os.path.realpath(exe)
+exefile = os.path.basename(exe)
+if exefile == "convert":
+    for extname in ("jpg", "png", "tiff"):
+        try:
+            os.symlink(fullpath, "{}.{}.py".format(fullpath, extname))
+        except FileExistsError as e:
+            print(e)
+    notify2.Notification("please use soft link to convert").show()
+    sys.exit(1)
+extname = exefile.split(".")[1]
+notify2.Notification(extname).show()
+
+filepaths = os.environ['NAUTILUS_SCRIPT_SELECTED_FILE_PATHS'].splitlines()
+notif = None
+try:
+    for filepath in filepaths:
+        s = os.stat(filepath)
+        if stat.S_ISDIR(s.st_mode):
+            continue
+
+        if notif is None:
+            notif = notify2.Notification(filepath)
+        else:
+            notif.summary = filepath
+
+        filename = os.path.basename(filepath)
+        dirname  = os.path.dirname(filepath)
+        filename, fileext = os.path.splitext(filename)
+
+        notif.message = resultpath = os.path.join(dirname, filename + "." + extname)
+        if resultpath != filepath:
+            img = cv2.imread(filepath)
+            cv2.imwrite(resultpath, img)
+
+        notif.show()
+except Exception as e:
+    exc_type, exc_obj, exc_tb = sys.exc_info()
+    notify2.Notification("{}: {}".format(exc_tb.tb_lineno, str(e))).show()
