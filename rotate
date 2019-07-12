@@ -26,11 +26,11 @@ elif exefile == 'rotate.clockwise':
 else:
     if exefile == 'rotate':
         try:
-            os.symlink(fullpath, "rotate.clockwise")
+            os.symlink(fullpath, fullpath+".clockwise")
         except FileExistsError as e:
             print(e)
         try:
-            os.symlink(fullpath, "rotate.counterclockwise")
+            os.symlink(fullpath, fullpath+".counterclockwise")
         except FileExistsError as e:
             print(e)
         sys.exit()
